@@ -1,31 +1,102 @@
 import React from "react"
-import { Provider } from "react-redux"
 import { BrowserRouter } from "react-router-dom"
+import { Provider } from "react-redux"
 
 import "@testing-library/jest-dom/extend-expect"
-import { render } from "@testing-library/react"
+import { render, screen } from "@testing-library/react"
 
-import { Catalog } from "../../src/client/pages/Catalog"
-import { CartApi, ExampleApi } from "../../src/client/api"
+import { ExampleApi } from "../../src/client/api"
+import { Application } from "../../src/client/Application"
+import { CartApi } from "../../src/client/api"
 import { initStore } from "../../src/client/store"
 
-const extraUrl = "/hw/store";
-const API_URL = new ExampleApi(extraUrl);
-const CART_API = new CartApi();
-const currentStore = initStore(API_URL, CART_API);
+class MockApi extends ExampleApi {
+  async getProducts() {
+    return {
+      data: mockItems
+    }
+  }
 
-describe("Каталог здесь? Спартак здесь?", () => {
-  it("Каталооооооооооооооог", async () => {
-    const { getByText } = await render(
-      <BrowserRouter basename={extraUrl}>
-        <Provider store={currentStore}>
-          <Catalog />
-        </Provider>
-    </BrowserRouter>
+  async getProductById(id) {
+    return {
+      data: mockItems[id]
+    }
+  }
+
+  async checkout(form, cart) {
+    return {
+      data: {
+        id: 1
+      }
+    }
+  }
+}
+
+
+const MockProvider = ({ children }) => {
+  const cart = new CartApi()
+  const store = initStore(new MockApi("/"), cart)
+
+  return <Provider store={store}>{children}</Provider>
+}
+
+
+describe("проверка link элементов в store", () => {
+  const basename = "/hw/store"
+
+  it("есть на странице cart", () => {
+    const { container } = render(
+      <BrowserRouter basename={basename}>
+        <MockProvider>
+          <Application />
+        </MockProvider>
+      </BrowserRouter>
     )
 
-    const textFirst = getByText('Catalog');
+    const navLinkSelector = ".nav-link"
 
-    expect(textFirst).toBeInTheDocument()
+    const navPageLinks = container.querySelectorAll(navLinkSelector)
+    const navCart = container.querySelectorAll(
+      `${navLinkSelector}[href="${basename}/cart"]`
+    )
+
+    expect(navPageLinks.length).toBeGreaterThan(1)
+    expect(navCart.length).toBe(1)
+  })
+
+  it("атрибуты href", () => {
+    const { container } = render(
+      <BrowserRouter basename={basename}>
+        <MockProvider>
+          <Application />
+        </MockProvider>
+      </BrowserRouter>
+    )
+
+    const shopTitleSelector = ".navbar-brand"
+
+    expect(
+      container.querySelector(shopTitleSelector).getAttribute("href")
+    ).toBe(basename + "/")
+  })
+
+  it("проверка что есть на странице", () => {
+    render(
+      <BrowserRouter basename={basename}>
+        <MockProvider>
+          <Application />
+        </MockProvider>
+      </BrowserRouter>
+    )
+
+    const homeLink = screen.getByRole("link", { name: /Example store/i })
+    const catalogLink = screen.getByRole("link", { name: /Catalog/i })
+    const deliveryLink = screen.getByRole("link", { name: /Delivery/i })
+    const contactsLink = screen.getByRole("link", { name: /Contacts/i })
+
+    expect(homeLink).toBeInTheDocument()
+    expect(catalogLink).toBeInTheDocument()
+    expect(deliveryLink).toBeInTheDocument()
+    expect(contactsLink).toBeInTheDocument()
   })
 })
