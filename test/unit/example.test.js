@@ -4,6 +4,7 @@ import { Provider } from "react-redux"
 
 import "@testing-library/jest-dom/extend-expect"
 import { render, screen } from "@testing-library/react"
+import events from "@testing-library/user-event"
 
 import { ExampleApi } from "../../src/client/api"
 import { Application } from "../../src/client/Application"
@@ -11,28 +12,8 @@ import { CartApi } from "../../src/client/api"
 import { initStore } from "../../src/client/store"
 import { Catalog } from "../../src/client/pages/Catalog"
 import { Home } from "../../src/client/pages/Home"
+import { ProductDetails } from "../../src/client/components/ProductDetails"
 
-class MockApi extends ExampleApi {
-  async getProducts() {
-    return {
-      data: mockItems
-    }
-  }
-
-  async getProductById(id) {
-    return {
-      data: mockItems[id]
-    }
-  }
-
-  async checkout(form, cart) {
-    return {
-      data: {
-        id: 1
-      }
-    }
-  }
-}
 
 const mockItems = [
   {
@@ -60,6 +41,27 @@ const mockItems = [
     material: "texture"
   }
 ]
+class MockApi extends ExampleApi {
+  async getProducts() {
+    return {
+      data: mockItems
+    }
+  }
+
+  async getProductById(id) {
+    return {
+      data: mockItems[id]
+    }
+  }
+
+  async checkout(form, cart) {
+    return {
+      data: {
+        id: 1
+      }
+    }
+  }
+}
 
 
 const MockProvider = ({ children }) => {
@@ -156,5 +158,118 @@ describe("проверка link элементов в store", () => {
     expect(catalogLink).toBeInTheDocument()
     expect(deliveryLink).toBeInTheDocument()
     expect(contactsLink).toBeInTheDocument()
+  })
+})
+
+describe("Правильные данные на странице details", () => {
+  it("Цена продукта", () => {
+    const mockProduct = mockItems[0]
+
+    render(
+      <MockProvider>
+        <ProductDetails product={mockProduct} />
+      </MockProvider>
+    )
+
+    expect(screen.getByText(`$${mockProduct.price}`)).toBeInTheDocument()
+  })
+
+  it("Цвет продукта", () => {
+    const mockProduct = mockItems[0]
+
+    render(
+      <MockProvider>
+        <ProductDetails product={mockProduct} />
+      </MockProvider>
+    )
+
+    expect(screen.getByText(mockProduct.color)).toBeInTheDocument()
+  })
+
+  it("Материал продукта", () => {
+    const mockProduct = mockItems[0]
+
+    render(
+      <MockProvider>
+        <ProductDetails product={mockProduct} />
+      </MockProvider>
+    )
+
+    expect(screen.getByText(mockProduct.material)).toBeInTheDocument()
+  })
+
+  it("Имя продукта", () => {
+    const mockProduct = mockItems[0]
+
+    render(
+      <MockProvider>
+        <ProductDetails product={mockProduct} />
+      </MockProvider>
+    )
+
+    expect(screen.getByText(mockProduct.name)).toBeInTheDocument()
+  })
+
+  it("описание продукта", () => {
+    const mockProduct = mockItems[0]
+
+    render(
+      <MockProvider>
+        <ProductDetails product={mockProduct} />
+      </MockProvider>
+    )
+
+    expect(screen.getByText(mockProduct.description)).toBeInTheDocument()
+  })
+
+  it("есть кнопка у продукта", () => {
+    const mockProduct = mockItems[0]
+
+    render(
+      <MockProvider>
+        <ProductDetails product={mockProduct} />
+      </MockProvider>
+    )
+
+    expect(
+      screen.getByRole("button", { name: /add to cart/i })
+    ).toBeInTheDocument()
+  })
+
+  it("клик по добавить в корзину", () => {
+    const id = 0
+    const product = mockItems[id]
+    const cart = new CartApi()
+
+    cart.setState({ 0: { name: "qwerty", price: 1337, count: 1 } })
+    render(
+      <MockProvider>
+        <ProductDetails product={product} />
+      </MockProvider>
+    )
+
+    const cartState = cart.getState()
+
+    expect(cartState).toHaveProperty(id.toString())
+  })
+
+  it("товар увеличился?", async () => {
+    const id = 0
+    const product = mockItems[id]
+    const cart = new CartApi()
+    cart.setState({})
+
+    render(
+      <MockProvider>
+        <ProductDetails product={product} />
+      </MockProvider>
+    )
+    const add = screen.getByRole("button", { name: /Add to Cart/i })
+
+    await events.click(add)
+    await events.click(add)
+
+    const count = cart.getState()[id + 1].count
+    expect(count).toBe(2)
   })
 })
