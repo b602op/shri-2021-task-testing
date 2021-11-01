@@ -10,6 +10,7 @@ import { Application } from "../../src/client/Application"
 import { CartApi } from "../../src/client/api"
 import { initStore } from "../../src/client/store"
 import { Catalog } from "../../src/client/pages/Catalog"
+import { Home } from "../../src/client/pages/Home"
 
 class MockApi extends ExampleApi {
   async getProducts() {
@@ -68,10 +69,11 @@ const MockProvider = ({ children }) => {
   return <Provider store={store}>{children}</Provider>
 }
 
-describe("Check Catalog page to render valid content", () => {
-  const basename = "/hw/store"
-
-
+describe("Домашняя страница", () => {
+  it("снэпшет", () => {
+    const { asFragment } = render(<Home />)
+    expect(asFragment()).toMatchSnapshot()
+  })
 })
 
 

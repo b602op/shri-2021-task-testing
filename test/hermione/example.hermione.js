@@ -12,18 +12,18 @@ describe('github', async function() {
     });
 });
 
-describe("Home page", () => {
-    it("Screenshot Mobile navbar responsive assert view", async function () {
-      const browser = this.browser
-      await browser.url("/hw/store/")
-  
-      await browser.setWindowSize(414, 1080)
-  
-      await browser.assertView("414xHome", ".navbar", {
+describe("Домашняя страница", () => {
+    it("Мобила 414 - 1080", async function () {
+        const browser = this.browser
+        await browser.url("/hw/store/")
+
+        await browser.setWindowSize(414, 1080)
+
+        await browser.assertView("414xHome", ".navbar", {
         ignoreElements: [".Application-Brand"]
-      })
+        })
     })
-  })
+})
 
 describe("страница каталога", () => {
     it("мобайл 414 - 1080", async function () {
