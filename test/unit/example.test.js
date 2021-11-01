@@ -9,6 +9,7 @@ import { ExampleApi } from "../../src/client/api"
 import { Application } from "../../src/client/Application"
 import { CartApi } from "../../src/client/api"
 import { initStore } from "../../src/client/store"
+import { Catalog } from "../../src/client/pages/Catalog"
 
 class MockApi extends ExampleApi {
   async getProducts() {
@@ -32,6 +33,33 @@ class MockApi extends ExampleApi {
   }
 }
 
+const mockItems = [
+  {
+    id: 1,
+    name: "test-item-0",
+    description: "Test description 0",
+    price: 1337,
+    color: "red",
+    material: "steel"
+  },
+  {
+    id: 2,
+    name: "test-item-1",
+    description: "Test description 1",
+    price: 7331,
+    color: "green",
+    material: "plastic"
+  },
+  {
+    id: 3,
+    name: "test-item-2",
+    description: "Test description 2",
+    price: 3137,
+    color: "blue",
+    material: "texture"
+  }
+]
+
 
 const MockProvider = ({ children }) => {
   const cart = new CartApi()
@@ -40,9 +68,37 @@ const MockProvider = ({ children }) => {
   return <Provider store={store}>{children}</Provider>
 }
 
+describe("Check Catalog page to render valid content", () => {
+  const basename = "/hw/store"
+
+
+})
+
 
 describe("проверка link элементов в store", () => {
   const basename = "/hw/store"
+
+  it("проверка итемов в каталоге при помощи моков", async () => {
+    const { getAllByRole, getByText } = await render(
+      <BrowserRouter basename={basename}>
+        <MockProvider>
+          <Catalog />
+        </MockProvider>
+      </BrowserRouter>
+    )
+
+    const items = getAllByRole("link", { name: /details/i })
+
+    expect(getByText(mockItems[0].name)).toBeInTheDocument()
+    expect(getByText(mockItems[1].name)).toBeInTheDocument()
+    expect(getByText(mockItems[2].name)).toBeInTheDocument()
+
+    expect(getByText(`$${mockItems[0].price}`)).toBeInTheDocument()
+    expect(getByText(`$${mockItems[1].price}`)).toBeInTheDocument()
+    expect(getByText(`$${mockItems[2].price}`)).toBeInTheDocument()
+
+    expect(items.length).toBe(3)
+  })
 
   it("есть на странице cart", () => {
     const { container } = render(
